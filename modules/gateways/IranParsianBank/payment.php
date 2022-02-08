@@ -2,7 +2,7 @@
 /**
  **************************************************************************
  * IranParsianBank Bank Gateway
- * parsianBank/payment.php
+ * payment.php
  * Send Request & Callback
  * @author           Milad Abooali <m.abooali@hotmail.com>
  * @version          1.0
