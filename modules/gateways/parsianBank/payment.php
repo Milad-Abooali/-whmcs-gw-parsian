@@ -34,6 +34,89 @@ $invoice_id 	    = $_REQUEST['invoiceid'];
 $gw_id          	= $modules['cb_gw_id'];
 
 /**
+ * Display Error
+ * @param string $pay_status
+ * @param string $tran_id
+ * @param string $order_id
+ * @param string $amount
+ */
+function display_error($pay_status='',$tran_id='',$order_id='',$amount='')
+{
+    global $modules,$CONFIG;
+    if($pay_status == 'retry')
+    {
+        $page_title = 'خطای موقت در پرداخت';
+        $admin_mess = 'در هنگام بازگشت خریدار از بانک سرور بانک پاسخ نداد ، از خریدار درخواست شد صفحه را رفرش کند';
+        $retry_mess = '
+			<div style="margin:15px 0 21px 0;font-size: 12px;">
+				سرور درگاه اینترنتی <span style="color:#ff0000;">به صورت موقت</span> با مشکل مواجه شده است ، جهت تکمیل تراکنش لحظاتی بعد بر روی دکمه زیر کلیک کنید
+			</div>
+			<div style="margin:20px 0 25px 0;color:#008800;" id="reqreload">
+				<button onclick="reload_page()">تلاش مجدد</button>
+			</div>
+			<script>
+				function reload_page(){
+					document.getElementById("reqreload").innerHTML = "در حال تلاش مجدد لطفا صبر کنید ..";
+					location.reload();
+				}
+			</script>';
+    }
+    elseif($pay_status == 'reversal_done')
+    {
+        $page_title = 'مشکل در ارائه خدمات';
+        $admin_mess = 'خریدار مبلغ را پرداخت کرد اما در هنگام بازگشت از بانک مشکلی در ارائه خدمات رخ داد ، دستور بازگشت وجه به حساب خریدار در بانک ثبت شد';
+        $client_mess = 'پرداخت شما با شماره پیگیری '.$tran_id.' با موفقیت در بانک انجام شده است اما در ارائه خدمات مشکلی رخ داده است !<br />دستور بازگشت وجه به حساب شما در بانک ثبت شده است ، در صورتی که وجه پرداختی تا ساعات آینده به حساب شما بازگشت داده نشد با پشتیبانی تماس بگیرید (نهایت مدت زمان بازگشت به حساب 72 ساعت می باشد)';
+    }
+    elseif($pay_status == 'reversal_error')
+    {
+        $page_title = 'مشکل در ارائه خدمات';
+        $admin_mess = 'خریدار مبلغ را پرداخت کرد اما در هنگام بازگشت از بانک مشکلی در ارائه خدمات رخ داد ، دستور بازگشت وجه به حساب خریدار در بانک ثبت شد اما متاسفانه با خطا روبرو شد ، به این خریدار باید یا خدمات ارائه شود یا وجه استرداد گردد';
+        $client_mess = 'پرداخت شما با شماره پیگیری '.$tran_id.' با موفقیت در بانک انجام شده است اما در ارائه خدمات مشکلی رخ داده است !<br />به منظور ثبت دستور بازگشت وجه به حساب شما در بانک اقدام شد اما متاسفانه با خطا روبرو شد ، لطفا به منظور دریافت خدمات و یا استرداد وجه پرداختی با پشتیبانی تماس بگیرید';
+    }
+    elseif($pay_status == 'order_not_exist')
+    {
+        $page_title = 'سفارش یافت نشد';
+        $admin_mess = 'سفارش در سایت یافت نشد';
+        $client_mess = 'متاسفانه سفارش شما در سایت یافت نشد ! در صورتی که وجه پرداختی از حساب بانکی شما کسر شده باشد به صورت خودکار از سوی بانک به حساب شما باز خواهد گشت (نهایت مدت زمان بازگشت به حساب 72 ساعت می باشد)';
+    }
+    elseif($pay_status == 'invoice_id_is_blank')
+    {
+        $page_title = 'خطا در پارامتر ورودی';
+        $admin_mess = 'پس از بازگشت از بانک شماره سفارش موجود نبود';
+        $client_mess = 'متاسفانه پارامتر ورودی شما معتبر نیست ! در صورتی که وجه پرداختی از حساب بانکی شما کسر شده باشد به صورت خودکار از سوی بانک به حساب شما باز خواهد گشت (نهایت مدت زمان بازگشت به حساب 72 ساعت می باشد)';
+    }
+    else
+    {
+        $page_title = $admin_mess = 'پرداخت انجام نشد';
+        $client_mess = PecStatus($pay_status).' (کد خطا : '.$pay_status.')';
+        $client_mess .= ' ؛ در صورتی که وجه پرداختی از حساب بانکی شما کسر شده باشد به صورت خودکار از سوی بانک به حساب شما باز خواهد گشت (نهایت مدت زمان بازگشت به حساب 72 ساعت می باشد) - در صورت نیاز با پشتیبانی تماس بگیرید.';
+    }
+    echo '
+	<!DOCTYPE html> 
+	<html xmlns="http://www.w3.org/1999/xhtml" lang="fa">
+	<head>
+	<title>'.$page_title.'</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<style>body{font-family:tahoma;text-align:center;margin-top:30px;}</style>
+	</head>
+	<body>
+		<div dir="rtl" style="font-family:tahoma;font-size:12px;border:1px dotted #c3c3c3; width:60%; margin: 50px auto 0 auto;line-height: 25px;padding-left: 12px;padding-top: 8px;">
+			<span style="color:#ff0000;"><b>'.$page_title.'</b></span><br/>';
+    if(isset($retry_mess)){
+        echo $retry_mess;
+    }
+    else{
+        echo '<p style="text-align:right;margin-right:8px;">'.$client_mess.'</p><a href="'.$CONFIG['SystemURL'].'/viewinvoice.php?id='.$order_id.'">بازگشت >></a><br/><br/>';
+    }
+    echo '</div>
+	</body>
+	</html>
+	';
+    logTransaction($modules["name"] ,  array( 'invoiceid'=>$order_id,'order_id'=>$order_id,'amount'=>$amount,'tran_id'=>$tran_id,'status'=>'unpaid')  , "ناموفق - $admin_mess") ;
+    exit;
+}
+
+/**
  * Error Codes Translator
  * @param string $ResCode
  * @return string
@@ -361,76 +444,66 @@ function notifyEmail($notify) {
     }
 }
 
-
 if($action==='callback') {
     $tran_id  = $order_id  = $invoice_id;
     $ref_code = $_POST['SaleReferenceId'];
     if(!empty($invoice_id)) {
-        $cb_output['invoice_id'] = $invoice_id;
-        if(!empty($order_id) && !empty($tran_id) && !empty($ref_code)) {
-            $cb_output['tran_id'] = $tran_id;
-            $invoice_id = checkCbInvoiceID($invoice_id, $modules['name']);
-            $results = select_query("tblinvoices", "", array("id" => $invoice_id));
-            $data = mysql_fetch_array($results);
-            $db_amount = strtok($data['total'], '.');
-            if ($_POST['ResCode'] == '0') {
-                include_once('nusoap.php');
-                $client = new nusoap_client('https://bpm.shaparak.ir/pgwchannel/services/pgw?wsdl');
-                $namespace='http://interfaces.core.sw.bps.com/';
-                $parameters = array(
-                    'terminalId' 		=> $modules['cb_gw_terminal_id'],
-                    'userName' 			=> $modules['cb_gw_user'],
-                    'userPassword' 		=> $modules['cb_gw_pass'],
-                    'orderId'           => $_POST['SaleOrderId'],
-                    'saleOrderId'       => $_POST['SaleOrderId'],
-                    'saleReferenceId'   => $_POST['SaleReferenceId']
-                );
-                $cb_output['res']['result'] = $bpVerifyRequest = $client->call('bpVerifyRequest', $parameters, $namespace);
-                if($bpVerifyRequest == 0) {
-                    $bpSettleRequest = $client->call('bpSettleRequest', $parameters, $namespace);
-                    if($bpSettleRequest == 0) {
-                        $cartNumber = $_POST['CardHolderPan'];
-                        addInvoicePayment($invoice_id, $ref_code, $amount, 0, $cb_gw_name);
-                        logTransaction($modules["name"], array('invoiceid' => $invoice_id,'order_id' => $order_id,'amount' => $amount." ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial'),'tran_id' => $tran_id,'RefId' => $_POST['RefId'],'SaleReferenceId' => $ref_code,'CardNumber' => $cartNumber,'status' => "OK"), "موفق");
-                        $notify['title'] = $cb_gw_name.' | '."تراکنش موفق";
-                        $notify['text']  = "\n\rGateway: $cb_gw_name\n\rAmount: $amount ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial')."\n\rOrder: $order_id\n\rInvoice: $invoice_id\n\rCart Number: $cartNumber";
-                        if($modules['cb_email_on_success']) notifyEmail($notify);
-                        if($modules['cb_telegram_on_success']) notifyTelegram($notify);
-                    }
-                    else {
-                        $client->call('bpReversalRequest', $parameters, $namespace);
-                        logTransaction($modules["name"], array('invoiceid' => $invoice_id,'order_id' => $order_id,'amount' => $amount." ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial'),'tran_id' => $tran_id, 'status' => $bpSettleRequest), "ناموفق");
-                        $notify['title'] = $cb_gw_name.' | '."تراکنش ناموفق";
-                        $notify['text']  = "\n\rGateway: $cb_gw_name\n\rAmount: $amount ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial')."\n\rOrder: $order_id\n\rInvoice: $invoice_id\n\rError: به دلیل رخ دادن خطا در پرداخت، درخواست بازگشت وجه داده شد.";
-                        if($modules['cb_email_on_error']) notifyEmail($notify);
-                        if($modules['cb_telegram_on_error']) notifyTelegram($notify);
-                    }
+        $Token		= isset($_REQUEST['Token']) ? $_REQUEST['Token'] : '';
+        $status		= isset($_REQUEST['status']) ? $_REQUEST['status'] : '';
+        $OrderId	= isset($_REQUEST['OrderId']) ? $_REQUEST['OrderId'] : '';
+        $TerminalNo	= isset($_REQUEST['TerminalNo']) ? $_REQUEST['TerminalNo'] : '';
+        $RRN		= isset($_REQUEST['RRN']) ? $_REQUEST['RRN'] : '';
+        if($status == '0' && $Token > 0)
+        {
+            checkCbTransID($Token);
+            $parameters = array(
+                'LoginAccount'		=> $modules['cb_gw_pass'],
+                'Token' 			=> $Token
+            );
+            if(extension_loaded('soap')){
+                try {
+                    $client	= new SoapClient('https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?WSDL',array('soap_version'=>'SOAP_1_1','cache_wsdl'=>WSDL_CACHE_NONE  ,'encoding'=>'UTF-8'));
+                    $result	= $client->ConfirmPayment(array("requestData" => $parameters));
+                    $Request = array(
+                        'Status'			=> $result->ConfirmPaymentResult->Status,
+                        'RRN'				=> $result->ConfirmPaymentResult->RRN,
+                        'CardNumberMasked'	=> isset($result->ConfirmPaymentResult->CardNumberMasked) ? $result->ConfirmPaymentResult->CardNumberMasked : ''
+                    );
                 }
-                else {
-                    $client->call('bpReversalRequest', $parameters, $namespace);
-                    logTransaction($modules["name"], array('invoiceid' => $invoice_id,'order_id' => $order_id,'amount' => $amount." ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial'),'tran_id' => $tran_id, 'status' => $bpVerifyRequest), "ناموفق");
-                    $notify['title'] = $cb_gw_name.' | '."تراکنش ناموفق";
-                    $notify['text']  = "\n\rGateway: $cb_gw_name\n\rAmount: $amount ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial')."\n\rOrder: $order_id\n\rInvoice: $invoice_id\n\rError: به دلیل رخ دادن خطا در پرداخت، درخواست بازگشت وجه داده شد.";
-                    if($modules['cb_email_on_error']) notifyEmail($notify);
-                    if($modules['cb_telegram_on_error']) notifyTelegram($notify);
+                catch(Exception $e){
+                    $Request = array('Status' =>	'-1','RRN' => '');
                 }
-            } else {
-                logTransaction($modules["name"], array('invoiceid' => $invoice_id,'order_id' => $order_id,'amount' => $amount." ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial'),'tran_id' => $tran_id, 'status' => $_POST['ResCode']), "ناموفق");
-                $notify['title'] = $cb_gw_name.' | '."تراکنش ناموفق";
-                $notify['text']  = "\n\rGateway: $cb_gw_name\n\rAmount: $amount ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial')."\n\rOrder: $order_id\n\rInvoice: $invoice_id\n\rError: به دلیل رخ دادن خطا در پرداخت، درخواست بازگشت وجه داده شد.";
-                if($modules['cb_email_on_error']) notifyEmail($notify);
-                if($modules['cb_telegram_on_error']) notifyTelegram($notify);
             }
-
-
+            else{
+                $Request = array('Status' =>	'-2','RRN' => '');
+            }
+            $Request = (object)$Request;
+            if($Request->Status == 0 && $Request->RRN > 0)
+            {
+                addInvoicePayment($invoice_id, $Token, $amount, 0, $cb_gw_name);
+                logTransaction($modules["name"]  ,  array( 'invoiceid'=>$invoice_id,'order_id'=>$invoice_id,'amount'=>$amount,'tran_id'=>$Token, 'refcode'=>$Token, 'status'=>'paid' )  ,"موفق");
+            }
+            elseif($Request->Status == '-1'){
+                $error_code = 'retry';
+            }
+            else{
+                $error_code = $Request->Status;
+            }
         }
-        $action = $CONFIG['SystemURL'] . "/viewinvoice.php?id=" . $invoice_id;
-        header('Location: ' . $action);
-        //print("<pre>".print_r($cb_output,true)."</pre>");
+
+        if(isset($error_code)){
+            display_error($error_code, $Token, $invoice_id, $amount);
+        }
+        else{
+            $action = $CONFIG['SystemURL'] . "/viewinvoice.php?id=" . $invoice_id;
+            header('Location: ' . $action);
+            //print("<pre>".print_r($cb_output,true)."</pre>");
+        }
     }
     else {
         echo "invoice id is blank";
     }
+
 }
 else if($action==='send') {
     $callback_URL   = $CONFIG['SystemURL']."/modules/gateways/$cb_gw_name/payment.php?a=callback&invoiceid=". $invoice_id.'&amount='.$amount;
@@ -471,7 +544,7 @@ else if($action==='send') {
             <style>body{font-family:tahoma;text-align:center;margin-top:30px;}</style></head><body>
             <div align="center" dir="rtl" style="font-family:tahoma;font-size:12px;border:1px dotted #c3c3c3; width:60%; margin: 50px auto 0px auto;line-height: 25px;padding-left: 12px;padding-top: 8px;">
             <span style="color:#ff0000;"><b>خطا در ارسال به بانک</b></span><br/>
-            <p style="text-align:center;">'.PecStatus($Request->Status).' (کد خطا : '.$Request->Status.') ؛ در صورت نیاز با پشتیبانی تماس بگیرید</p>
+            <p style="text-align:center;">'.errorCodeT($Request->Status).' (کد خطا : '.$Request->Status.') ؛ در صورت نیاز با پشتیبانی تماس بگیرید</p>
             <a href="'.$CONFIG['SystemURL'].'/viewinvoice.php?id='.$invoice_id.'">بازگشت</a>
             </div></body></html>';
     }
