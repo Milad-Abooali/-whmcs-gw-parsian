@@ -21,7 +21,7 @@
 function parsianBank_MetaData()
 {
     return [
-        "DisplayName"                   => "ParsianBank",
+        "DisplayName"                   => "Iran ParsianBank",
         "gatewayType"                   => "Bank", // Only set if the module is a Bank Module
         "failedEmail"                   => "Credit Card Payment Failed",
         "successEmail"                  => "Custom Credit Card Payment Template", // You can utilise custom templates here
