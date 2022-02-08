@@ -1,7 +1,7 @@
 <?php
 /**
  **************************************************************************
- * Parsian Bank Gateway
+ * IranParsianBank Bank Gateway
  * parsianBank/payment.php
  * Send Request & Callback
  * @author           Milad Abooali <m.abooali@hotmail.com>
@@ -19,7 +19,7 @@
 
 global $CONFIG;
 $cb_output = [$_POST,$_GET];
-$cb_gw_name = 'parsianBank';
+$cb_gw_name = 'IranParsianBank';
 $action = isset($_GET['a']) ? $_GET['a'] : false;
 $root_path     = '../../../';
 $includes_path = '../../../includes/';

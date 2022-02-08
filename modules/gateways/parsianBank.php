@@ -1,8 +1,8 @@
 <?php
 /**
  **************************************************************************
- * Parsian Bank Gateway
- * parsianBank.php
+ * IranParsianBank Gateway
+ * IranParsianBank.php
  * Meta Data, Config & Link
  * @author           Milad Abooali <m.abooali@hotmail.com>
  * @version          1.0
@@ -13,15 +13,18 @@
  * @noinspection PhpIncludeInspection
  * @noinspection PhpIncludeInspection
  **************************************************************************
+ */
+
+$cb_gw_name = 'IranParsianBank';
 
 /**
  * Meta Data
  * @return array
  */
-function parsianBank_MetaData()
+function IranParsianBank_MetaData()
 {
     return [
-        "DisplayName"                   => "Iran ParsianBank",
+        "DisplayName"                   => "IranParsianBank",
         "gatewayType"                   => "Bank", // Only set if the module is a Bank Module
         "failedEmail"                   => "Credit Card Payment Failed",
         "successEmail"                  => "Custom Credit Card Payment Template", // You can utilise custom templates here
@@ -36,10 +39,10 @@ function parsianBank_MetaData()
  * Config
  * @return array
  */
-function parsianBank_config()
+function IranParsianBank_config()
 {
     return [
-        "FriendlyName" => ["Type" => "System", "Value" => "ParsianBank"],
+        "FriendlyName" => ["Type" => "System", "Value" => "بانک پارسیان ایران"],
 
         // Gateway Setup
         "cb_gw_pass"         => ["FriendlyName" => "رمز پذيرنده", "Type" => "text", "Size" => "50"],
@@ -72,12 +75,13 @@ function parsianBank_config()
  * @param $params
  * @return string
  */
-function parsianBank_link($params)
+function IranParsianBank_link($params)
 {
-    return '<form method="post" action="modules/gateways/parsianBank/payment.php?a=send">
+    global $cb_gw_name;
+    return '<form method="post" action="modules/gateways/'.$cb_gw_name.'/payment.php?a=send">
 	<input type="hidden" name="invoiceid" value="'.$params['invoiceid'].'">
 	<input type="hidden" name="amount" value="'.round(($params['amount']-'.00') * $params['cb_gw_unit']).'">
 	<input type="hidden" name="email" value="'.$params['clientdetails']['email'].'">
 	<input type="submit" name="pay" value="پرداخت"></form>
-	<img src="/modules/gateways/parsianBank/logo.png" alt="Parsian Bank" style="max-width:170px;height:45px;">';
+	<img src="/modules/gateways/'.$cb_gw_name.'/logo.png" alt="Parsian Bank" style="max-width:170px;height:45px;">';
 }
