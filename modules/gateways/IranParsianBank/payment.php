@@ -112,7 +112,11 @@ function display_error($pay_status='',$tran_id='',$order_id='',$amount='')
 	</body>
 	</html>
 	';
-    logTransaction($modules["name"] ,  array( 'invoiceid'=>$order_id,'order_id'=>$order_id,'amount'=>$amount,'tran_id'=>$tran_id,'status'=>'unpaid')  , "ناموفق - $admin_mess") ;
+    logTransaction($modules["name"] ,  array( 'invoiceid'=>$order_id,'order_id'=>$order_id,'amount'=>$amount." ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial'),'tran_id'=>$tran_id,'status'=>'unpaid')  , "ناموفق - $admin_mess") ;
+	$notify['title'] = $cb_gw_name.' | '."تراکنش ناموفق";
+	$notify['text']  = "\n\rGateway: $cb_gw_name\n\rAmount: $amount ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial')."\n\rOrder: $order_id\n\rInvoice: $invoice_id\n\r Error: ".$admin_mess;
+	if($modules['cb_email_on_error']) notifyEmail($notify);
+	if($modules['cb_telegram_on_error']) notifyTelegram($notify);
     exit;
 }
 
@@ -481,7 +485,11 @@ if($action==='callback') {
             if($Request->Status == 0 && $Request->RRN > 0)
             {
                 addInvoicePayment($invoice_id, $Token, $amount, 0, $cb_gw_name);
-                logTransaction($modules["name"]  ,  array( 'invoiceid'=>$invoice_id,'order_id'=>$invoice_id,'amount'=>$amount,'tran_id'=>$Token, 'refcode'=>$Token, 'status'=>'paid' )  ,"موفق");
+                logTransaction($modules["name"]  ,  array( 'invoiceid'=>$invoice_id,'order_id'=>$invoice_id,'amount'=>$amount." ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial'),'tran_id'=>$Token, 'refcode'=>$Token, 'status'=>'paid' )  ,"موفق");
+				$notify['title'] = $cb_gw_name.' | '."تراکنش موفق";
+				$notify['text']  = "\n\rGateway: $cb_gw_name\n\rAmount: $amount ".(($modules['cb_gw_unit']>1) ? 'Toman' : 'Rial')."\n\rOrder: $order_id\n\rInvoice: $invoice_id\n\rCart Number: ".$Request->CardNumberMasked;
+				if($modules['cb_email_on_success']) notifyEmail($notify);
+				if($modules['cb_telegram_on_success']) notifyTelegram($notify);
             }
             elseif($Request->Status == '-1'){
                 $error_code = 'retry';
