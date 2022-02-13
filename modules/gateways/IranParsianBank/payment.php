@@ -535,9 +535,74 @@ function display_error($pay_status='',$tran_id='',$order_id='',$amount='')
 }
 
 if($action==='callback') {
-
-    // print("<pre>".print_r($cb_output,true)."</pre>");
-    redirect($invoice_URL);
+    if(empty($invoice_id)) die('Invoice ID Missing!');
+    $cb_output['invoice_id'] = $invoice_id;
+    // Response Items From Bank
+    $tran_id  = $order_id  = $invoice_id;
+    $ref_code = $_POST['SaleReferenceId'];
+    $Token		= isset($_REQUEST['Token']) ? $_REQUEST['Token'] : '';
+    $status		= isset($_REQUEST['status']) ? $_REQUEST['status'] : '';
+    $OrderId	= isset($_REQUEST['OrderId']) ? $_REQUEST['OrderId'] : '';
+    $TerminalNo	= isset($_REQUEST['TerminalNo']) ? $_REQUEST['TerminalNo'] : '';
+    $RRN		= isset($_REQUEST['RRN']) ? $_REQUEST['RRN'] : '';
+    if($status == '0' && $Token > 0)
+    {
+        // Check Invoice ID by WHMCS
+        $invoice_id = checkCbInvoiceID($invoice_id, $modules['name']);
+        // Check Transaction ID by WHMCS
+        checkCbTransID($Token);
+        // Check Invoice Amount From Database
+        $db_amount_rial = get_db_amount();
+        $cb_output['db_amount_rial'] = $db_amount_rial;
+        $log = array(
+            'Invoice'        => $invoice_id,
+            'Amount'         => number_format($amount).(($modules['cb_gw_unit']>1)?' Toman':' Rial'),
+            'Order'          => $OrderId,
+            'Transaction'    => $Token
+        );
+        $parameters = array(
+            'LoginAccount'		=> $modules['cb_gw_pass'],
+            'Token' 			=> $Token
+        );
+        if(extension_loaded('soap')){
+            try {
+                $client	= new SoapClient('https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?WSDL',array('soap_version'=>'SOAP_1_1','cache_wsdl'=>WSDL_CACHE_NONE  ,'encoding'=>'UTF-8'));
+                $result	= $client->ConfirmPayment(array("requestData" => $parameters));
+                $Request = array(
+                    'Status'			=> $result->ConfirmPaymentResult->Status,
+                    'RRN'				=> $result->ConfirmPaymentResult->RRN,
+                    'CardNumberMasked'	=> isset($result->ConfirmPaymentResult->CardNumberMasked) ? $result->ConfirmPaymentResult->CardNumberMasked : ''
+                );
+            }
+            catch(Exception $e){
+                $Request = array('Status' =>	'-1','RRN' => '');
+            }
+        }
+        else{
+            $Request = array('Status' =>	'-2','RRN' => '');
+        }
+        $Request = (object)$Request;
+        if($Request->Status == 0 && $Request->RRN > 0)
+        {
+            payment_success($log);
+            addInvoicePayment($invoice_id, $Token, $amount, 0, $cb_gw_name);
+        }
+        elseif($Request->Status == '-1'){
+            $log['Error']  = "retry";
+            payment_failed($log);
+        }
+        else{
+            $log['Error']  = $Request->Status;
+            payment_failed($log);
+        }
+    }
+    if(isset($error_code)){
+        display_error($error_code, $Token, $invoice_id, $amount);
+    }
+    else{
+        // print("<pre>".print_r($cb_output,true)."</pre>");
+        redirect($invoice_URL);
+    }
 }
 elseif ($action==='send'){
     $parameters = array(
