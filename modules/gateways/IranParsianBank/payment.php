@@ -456,7 +456,8 @@ function errorCodeT($ResCode='') {
  */
 function display_error($pay_status='',$tran_id='',$order_id='',$amount='')
 {
-    global $modules,$CONFIG;
+    global $modules,$CONFIG,$cb_gw_name,$invoice_id;
+    $client_mess='';
     if($pay_status == 'retry')
     {
         $page_title = 'خطای موقت در پرداخت';
@@ -639,8 +640,8 @@ elseif ($action==='send'){
         echo '<!DOCTYPE html> 
             <html xmlns="http://www.w3.org/1999/xhtml" lang="fa"><head><title>خطا در ارسال به بانک</title>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-            <style>body{font-family:tahoma;text-align:center;margin-top:30px;}</style></head><body>
-            <div align="center" dir="rtl" style="font-family:tahoma;font-size:12px;border:1px dotted #c3c3c3; width:60%; margin: 50px auto 0px auto;line-height: 25px;padding-left: 12px;padding-top: 8px;">
+            </head><body>
+            <div dir="rtl" style="border:1px dotted #c3c3c3; width:60%; margin: 50px auto 0 auto;line-height: 25px;padding-left: 12px;padding-top: 8px;">
             <span style="color:#ff0000;"><b>خطا در ارسال به بانک</b></span><br/>
             <p style="text-align:center;">'.errorCodeT($Request->Status).' (کد خطا : '.$Request->Status.') ؛ در صورت نیاز با پشتیبانی تماس بگیرید</p>
             <a href="'.$CONFIG['SystemURL'].'/viewinvoice.php?id='.$invoice_id.'">بازگشت</a>
