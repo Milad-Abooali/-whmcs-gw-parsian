@@ -5,7 +5,7 @@
  * IranParsianBank.php
  * Send Request & Callback
  * @author           Milad Abooali <m.abooali@hotmail.com>
- * @version          1.0
+ * @version          1.1
  **************************************************************************
  * @noinspection PhpUnused
  * @noinspection PhpUndefinedFunctionInspection
@@ -562,7 +562,7 @@ if($action==='callback') {
             'Transaction'    => $Token
         );
         $parameters = array(
-            'LoginAccount'		=> $modules['cb_gw_pass'],
+            'LoginAccount'		=> $modules['cb_gw_pin'],
             'Token' 			=> $Token
         );
         if(extension_loaded('soap')){
@@ -607,7 +607,7 @@ if($action==='callback') {
 }
 elseif ($action==='send'){
     $parameters = array(
-        'LoginAccount'		=> $modules['cb_gw_pass'],
+        'LoginAccount'		=> $modules['cb_gw_pin'],
         'Amount' 			=> $amount_rial,
         'OrderId' 			=> $invoice_id.mt_rand(10, 100),
         'CallBackUrl' 		=> $callback_URL,

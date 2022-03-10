@@ -5,7 +5,7 @@
  * IranParsianBank.php
  * Meta Data & Config & Link
  * @author           Milad Abooali <m.abooali@hotmail.com>
- * @version          1.0
+ * @version          1.1
  **************************************************************************
  * @noinspection PhpUnused
  * @noinspection PhpUndefinedFunctionInspection
@@ -43,8 +43,9 @@ function IranParsianBank_config()
     return [
         "FriendlyName" 			 => ["Type" => "System", "Value" => "بانک پارسیان ایران"],
         // Gateway Setup
-        "cb_gw_pass"         => ["FriendlyName" => "رمز پذيرنده", "Type" => "text", "Size" => "50"],
-        "cb_gw_unit"         => ["FriendlyName" => "واحد پول سیستم", "Type" => "dropdown", "Options" => ["1" => "ریال", "10" => "تومان"],"Description" => "لطفا واحد پول سیستم خود را انتخاب کنید."],
+        "cb_gw_method"           => ["FriendlyName" => "روش اتصال", "Type" => "radio", "Options" => "Token"],
+        "cb_gw_pin"              => ["FriendlyName" => "شناسه پذیرنده - PIN", "Type" => "text", "Size" => "50"],
+        "cb_gw_unit"             => ["FriendlyName" => "واحد پول سیستم", "Type" => "dropdown", "Options" => ["1" => "ریال", "10" => "تومان"],"Description" => "لطفا واحد پول سیستم خود را انتخاب کنید."],
         // Email Notification
         "cb_email"               => ["FriendlyName" => "Email Notify", "Type" => "", "Description" => "<i class='far fa-envelope'></i> ارسال هشدار پرداخت به پست‌الکترونیک"],
         "cb_email_on_success"    => ["FriendlyName" => "On Success", "Type" => "dropdown", "Options" => ["0" => "خیر", "1" => "بله"],"Description" => "ارسال هشدار تراکنش موفق به پست‌الکترونیک"],
